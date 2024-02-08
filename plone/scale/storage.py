@@ -124,6 +124,7 @@ class AnnotationStorage(MutableMapping):
         self.modified = modified
 
     def _modified_since(self, since, offset=0):
+        # print("offset", offset)
         # offset gets subtracted from the main modified time: this allows to
         # keep scales for a bit longer if needed, even when the main image has
         # changed.
@@ -184,7 +185,7 @@ class AnnotationStorage(MutableMapping):
         if (
             info is not None
             and (scaling_factory is not None or factory is not None)
-            and self._modified_since(info["modified"], offset=1000)
+            and self._modified_since(info["modified"])  # , offset=1000
         ):
             del self[info["uid"]]
             # invalidate when the image was updated
@@ -210,7 +211,11 @@ class AnnotationStorage(MutableMapping):
                     "dropped with plone.scale 3.0",
                     DeprecationWarning,
                 )
-            result = factory(**parameters)
+            try:
+                result = factory(**parameters)
+            except:
+                # temporary for migration
+                return None
         elif scaling_factory is not None:
             # this is what we want, keep this after deprecaton phase
             result = scaling_factory(**parameters)
@@ -241,7 +246,7 @@ class AnnotationStorage(MutableMapping):
                 key=key,
                 modified=self.modified_time,
             )
-            print("plone.scale.storage Generate new scale", key, result)
+            # print("plone.scale.storage Generate new scale", key, result)
             # if width == 32:
             #     __import__("pdb").set_trace()
 
